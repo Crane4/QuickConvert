@@ -1,0 +1,29 @@
+# Build outputs
+*.obj
+*.res
+*.exe
+*.dll
+*.exp
+*.lib
+*.old
+
+# Local tools and packaging artifacts
+ffmpeg.exe
+*.rar
+*.zip
+*.7z
+
+# Windows / IDE
+.vs/
+*.user
+*.suo
+Thumbs.db
+Desktop.ini
+
+# Package metadata generated locally
+microsoft.system.package.metadata/
+
+# Build and distribution folders
+build/
+dist/
+

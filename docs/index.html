@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Convert - Windows Shell Extension</title>
+    <style>
+        :root {
+            --primary: #0f62fe;
+            --bg: #0b0f14;
+            --surface: #161c24;
+            --text: #f5f7fa;
+            --text-muted: #9eafba;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(15, 98, 254, 0.1) 0%, rgba(11, 15, 20, 0) 100%);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .cta-button:hover {
+            background-color: #0353e9;
+            transform: translateY(-2px);
+        }
+
+        .hero-img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            margin-top: 2rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 4rem 0;
+        }
+
+        .feature-card {
+            background-color: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .feature-card h3 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        footer {
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        code {
+            background: rgba(255,255,255,0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1>Quick Convert</h1>
+            <p class="subtitle">The fastest way to convert images, PDFs, and Office documents directly from your Windows context menu.</p>
+            <a href="https://github.com/crane4/QuickConvert" class="cta-button">View on GitHub</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <section>
+            <img src="assets/hero.png" alt="Quick Convert Interface" class="hero-img">
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <h3>Images</h3>
+                <p>Convert between PNG, JPG, WebP, and ICO with a single click. High-fidelity conversion using Windows Imaging Component.</p>
+            </div>
+            <div class="feature-card">
+                <h3>PDF & Office</h3>
+                <p>Convert Word, Excel, and PowerPoint to PDF. Extract PDF pages to images or convert PDFs back to editable Word documents.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Windows 11 Native</h3>
+                <p>Built for the modern era. Quick Convert appears in the primary context menu without needing "Show more options".</p>
+            </div>
+            <div class="feature-card">
+                <h3>Ultra Fast</h3>
+                <p>Written in native C++ for maximum performance and minimal memory footprint. No heavy frameworks, just speed.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Released under the MIT License. Developed by crane4.</p>
+    </footer>
+
+</body>
+</html>

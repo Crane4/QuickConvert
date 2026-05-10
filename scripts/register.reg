@@ -1,0 +1,122 @@
+Windows Registry Editor Version 5.00
+
+; Remove old key if exists
+[-HKEY_CLASSES_ROOT\*\shell\QuickConvert]
+
+; Register for all image types via SystemFileAssociations
+[HKEY_CLASSES_ROOT\SystemFileAssociations\image\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\.pdf\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.pdf\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\.mp4\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.mp4\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\.mp3\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.mp3\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\.pptx\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\.ppt\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\.docx\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\.doc\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\.xlsx\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.pptx\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.ppt\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.docx\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.doc\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.xlsx\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.xls\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
+
+; Context menu for background
+[HKEY_CLASSES_ROOT\Directory\Background\shell\QuickConvert]
+"MUIVerb"="Quick Convert"
+"Icon"="logo.ico"
+"SubCommands"=""
+"ExplorerCommandHandler"="{BF5E6C7D-8B9A-4E3D-BC1F-2E4D3C2B1A0F}"
+
