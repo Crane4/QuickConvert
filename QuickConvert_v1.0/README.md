@@ -26,7 +26,7 @@
 
 ## 🛠️ Installation (User)
 
-1.  **Download**: Get the latest release from the [Releases](https://github.com/USER/QuickConvert/releases) page.
+1.  **Download**: Get the latest release from the [Releases](https://github.com/crane4/QuickConvert/releases) page.
 2.  **Extract**: Unzip the folder to a permanent location (e.g., `C:\Program Files\QuickConvert`).
 3.  **Install**: Run `Install.exe` as Administrator.
 4.  **Usage**: Right-click any file to see the **Quick Convert** menu.

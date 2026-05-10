@@ -520,9 +520,16 @@ void ShowFloatingMenu(HWND hWnd) {
 }
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int) {
+    INITCOMMONCONTROLSEX icce = { sizeof(icce) };
+    icce.dwICC = ICC_PROGRESS_CLASS;
+    InitCommonControlsEx(&icce);
+
     int argc;
     LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    if (argc < 2) return 0;
+    if (argc < 2) {
+        if (argv) LocalFree(argv);
+        return 0;
+    }
 
     TargetFormat g_TargetFormat = TargetFormat::Png;
     bool formatSet = false;
@@ -614,5 +621,6 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int) {
         DispatchMessageW(&msg);
     }
 
+    if (argv) LocalFree(argv);
     return 0;
 }

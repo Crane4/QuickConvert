@@ -98,7 +98,7 @@ HRESULT GetQuickConvertExePath(wchar_t* exePath, size_t cchExePath) {
         return E_INVALIDARG;
     }
 
-    if (GetModuleFileNameW(GetModuleHandleW(L"QuickConvert.dll"), exePath, (DWORD)cchExePath) == 0) {
+    if (GetModuleFileNameW(g_hInst, exePath, (DWORD)cchExePath) == 0) {
         return HRESULT_FROM_WIN32(GetLastError());
     }
 
@@ -173,7 +173,15 @@ public:
             }
         }
         args += m_format;
-        ShellExecuteW(NULL, L"open", exePath, args.c_str(), NULL, SW_SHOWNORMAL);
+        
+        std::wstring quotedExe = L"\"";
+        quotedExe += exePath;
+        quotedExe += L"\"";
+
+        HINSTANCE hResult = ShellExecuteW(NULL, L"open", quotedExe.c_str(), args.c_str(), NULL, SW_SHOWNORMAL);
+        if ((INT_PTR)hResult <= 32) {
+            return HRESULT_FROM_WIN32(GetLastError());
+        }
         return S_OK;
     }
 
