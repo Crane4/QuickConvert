@@ -61,6 +61,12 @@ bool UnregisterSparsePackage() {
     return RunCommand(cmd);
 }
 
+bool UnblockDirectory(const std::wstring& path) {
+    // This command removes the 'Mark of the Web' (Zone.Identifier) from all files in the directory
+    std::wstring cmd = L"powershell.exe -NoProfile -NonInteractive -Command \"Get-ChildItem -Path '" + path + L"' -Recurse | Unblock-File\"";
+    return RunCommand(cmd);
+}
+
 bool RegisterCLSID(HKEY hRoot, const std::wstring& dllPath) {
     // Register CLSID -> InprocServer32 so Windows can load the DLL
     std::wstring clsidKey = std::wstring(L"Software\\Classes\\CLSID\\") + CLSID_QuickConvert;
@@ -82,6 +88,10 @@ bool RegisterExtension(ProgressCallback* callback) {
     GetModuleFileNameW(NULL, modulePath, MAX_PATH);
     PathRemoveFileSpecW(modulePath);
     std::wstring basePath = modulePath;
+
+    if (callback) callback->update(10, L"Unblocking files...");
+    UnblockDirectory(basePath);
+
     std::wstring dllPath  = basePath + L"\\QuickConvert.dll";
     std::wstring manifestPath = basePath + L"\\AppxManifest.xml";
     std::wstring iconPath = basePath + L"\\logo.ico";
