@@ -20,6 +20,7 @@
 
 namespace {
 std::wstring g_LastConverterError;
+std::wstring g_WatermarkText = L"QUICK CONVERT";
 
 std::wstring QuoteForCommandLine(const std::wstring& value) {
     return L"\"" + value + L"\"";
@@ -507,33 +508,111 @@ HRESULT Converter::ConvertImage(const std::wstring& sourcePath, TargetFormat for
     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 
+    // Handle HEIC / HEIF input via FFmpeg transcoding first
+    std::wstring ext = PathFindExtensionW(sourcePath.c_str());
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
+
+    if (ext == L".heic" || ext == L".heif") {
+        if (format == TargetFormat::Png || format == TargetFormat::Jpg || format == TargetFormat::Webp || format == TargetFormat::Bmp) {
+            std::wstring targetPath;
+            if (format == TargetFormat::Png) targetPath = GetTargetPath(sourcePath, L".png");
+            else if (format == TargetFormat::Jpg) targetPath = GetTargetPath(sourcePath, L".jpg");
+            else if (format == TargetFormat::Webp) targetPath = GetTargetPath(sourcePath, L".webp");
+            else if (format == TargetFormat::Bmp) targetPath = GetTargetPath(sourcePath, L".bmp");
+            
+            HRESULT hr = ConvertWithFfmpeg(sourcePath, targetPath, L"");
+            Gdiplus::GdiplusShutdown(gdiplusToken);
+            return hr;
+        } else if (format == TargetFormat::Ico || format == TargetFormat::Pdf || format == TargetFormat::AddWatermark) {
+            wchar_t tempDir[MAX_PATH];
+            wchar_t tempFile[MAX_PATH];
+            if (GetTempPathW(MAX_PATH, tempDir) != 0 && GetTempFileNameW(tempDir, L"QCH", 0, tempFile) != 0) {
+                DeleteFileW(tempFile);
+                std::wstring tempPng = std::wstring(tempFile) + L".png";
+                
+                HRESULT hr = ConvertWithFfmpeg(sourcePath, tempPng, L"");
+                if (SUCCEEDED(hr)) {
+                    Gdiplus::GdiplusShutdown(gdiplusToken);
+                    hr = ConvertImage(tempPng, format);
+                    DeleteFileW(tempPng.c_str());
+                    return hr;
+                }
+                DeleteFileW(tempPng.c_str());
+                Gdiplus::GdiplusShutdown(gdiplusToken);
+                return hr;
+            }
+            Gdiplus::GdiplusShutdown(gdiplusToken);
+            return E_FAIL;
+        }
+    }
+
     if (format == TargetFormat::PdfToPngZip) {
         std::wstring targetPath = GetTargetPath(sourcePath, L".zip");
-        return ConvertPdfToPngZip(sourcePath, targetPath);
+        HRESULT hr = ConvertPdfToPngZip(sourcePath, targetPath);
+        Gdiplus::GdiplusShutdown(gdiplusToken);
+        return hr;
     }
 
     if (format == TargetFormat::PdfToJpgZip) {
         std::wstring targetPath = GetTargetPath(sourcePath, L".zip");
-        return ConvertPdfToImageZip(
+        HRESULT hr = ConvertPdfToImageZip(
             sourcePath,
             targetPath,
             L".jpg",
             winrt::Windows::Graphics::Imaging::BitmapEncoder::JpegEncoderId());
+        Gdiplus::GdiplusShutdown(gdiplusToken);
+        return hr;
     }
 
-    if (format == TargetFormat::Mp4ToMp3) {
+    if (format == TargetFormat::Mp4ToMp3 || format == TargetFormat::MovToMp3) {
         std::wstring targetPath = GetTargetPath(sourcePath, L".mp3");
-        return ConvertWithFfmpeg(sourcePath, targetPath, L"-vn -c:a libmp3lame -q:a 2");
+        HRESULT hr = ConvertWithFfmpeg(sourcePath, targetPath, L"-vn -c:a libmp3lame -q:a 2");
+        Gdiplus::GdiplusShutdown(gdiplusToken);
+        return hr;
     }
 
     if (format == TargetFormat::Mp4ToMov) {
         std::wstring targetPath = GetTargetPath(sourcePath, L".mov");
-        return ConvertWithFfmpeg(sourcePath, targetPath, L"-c copy");
+        std::wstring args = (ext == L".mp4") ? L"-c copy" : L"-c:v libx264 -c:a aac -pix_fmt yuv420p";
+        HRESULT hr = ConvertWithFfmpeg(sourcePath, targetPath, args);
+        Gdiplus::GdiplusShutdown(gdiplusToken);
+        return hr;
+    }
+
+    if (format == TargetFormat::MovToMp4) {
+        std::wstring targetPath = GetTargetPath(sourcePath, L".mp4");
+        std::wstring args;
+        if (ext == L".gif") {
+            args = L"-pix_fmt yuv420p";
+        } else if (ext == L".mov") {
+            args = L"-c:v copy -c:a aac";
+        } else {
+            args = L"-c:v libx264 -c:a aac -pix_fmt yuv420p";
+        }
+        HRESULT hr = ConvertWithFfmpeg(sourcePath, targetPath, args);
+        Gdiplus::GdiplusShutdown(gdiplusToken);
+        return hr;
     }
 
     if (format == TargetFormat::Mp3ToOgg) {
         std::wstring targetPath = GetTargetPath(sourcePath, L".ogg");
-        return ConvertWithFfmpeg(sourcePath, targetPath, L"-codec:a libvorbis");
+        HRESULT hr = ConvertWithFfmpeg(sourcePath, targetPath, L"-codec:a libvorbis");
+        Gdiplus::GdiplusShutdown(gdiplusToken);
+        return hr;
+    }
+
+    if (format == TargetFormat::VideoToGif) {
+        std::wstring targetPath = GetTargetPath(sourcePath, L".gif");
+        HRESULT hr = ConvertWithFfmpeg(sourcePath, targetPath, L"-vf \"fps=10,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse\"");
+        Gdiplus::GdiplusShutdown(gdiplusToken);
+        return hr;
+    }
+
+    if (format == TargetFormat::AudioToWav) {
+        std::wstring targetPath = GetTargetPath(sourcePath, L".wav");
+        HRESULT hr = ConvertWithFfmpeg(sourcePath, targetPath, L"-vn");
+        Gdiplus::GdiplusShutdown(gdiplusToken);
+        return hr;
     }
 
     if (format == TargetFormat::PptToPdf) {
@@ -603,7 +682,7 @@ HRESULT Converter::ConvertImage(const std::wstring& sourcePath, TargetFormat for
         hr = SaveToPdf(pFrame, targetPath);
     } else if (format == TargetFormat::AddWatermark) {
         targetPath = GetTargetPath(sourcePath, L"_watermarked.jpg");
-        hr = SaveWithWatermark(pFactory, pFrame, targetPath, L"QUICK CONVERT");
+        hr = SaveWithWatermark(pFactory, pFrame, targetPath, g_WatermarkText);
     }
 
 
@@ -992,4 +1071,8 @@ HRESULT Converter::ConvertPdfToPngZip(const std::wstring& sourcePath, const std:
 
 const std::wstring& Converter::GetLastErrorDetails() {
     return g_LastConverterError;
+}
+
+void Converter::SetWatermarkText(const std::wstring& text) {
+    g_WatermarkText = text;
 }

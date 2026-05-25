@@ -22,7 +22,11 @@ enum class TargetFormat {
     CompressPdf,
     PdfToWord,
     WordToPdf,
-    ExcelToPdf
+    ExcelToPdf,
+    MovToMp3,
+    MovToMp4,
+    VideoToGif,
+    AudioToWav
 };
 
 
@@ -33,6 +37,7 @@ public:
     static HRESULT ConvertImage(const std::wstring& sourcePath, TargetFormat format);
     static HRESULT ConvertPdfToPngZip(const std::wstring& sourcePath, const std::wstring& targetPath);
     static const std::wstring& GetLastErrorDetails();
+    static void SetWatermarkText(const std::wstring& text);
 
 private:
     static HRESULT SaveToImage(IWICBitmapSource* pBitmapSource, const std::wstring& targetPath, REFGUID containerFormat);

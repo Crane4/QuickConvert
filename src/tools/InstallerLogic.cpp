@@ -81,34 +81,166 @@ bool RegisterCLSID(HKEY hRoot, const std::wstring& dllPath) {
     return true;
 }
 
-bool RegisterExtension(ProgressCallback* callback) {
-    if (callback) callback->update(5, L"Locating files...");
+bool AddToPath(const std::wstring& dirToInstall) {
+    HKEY hKey;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Environment", 0, KEY_READ | KEY_WRITE, &hKey) != ERROR_SUCCESS) {
+        return false;
+    }
+
+    DWORD type = 0;
+    DWORD cbData = 0;
+    LONG ret = RegQueryValueExW(hKey, L"Path", NULL, &type, NULL, &cbData);
+    
+    std::wstring pathVal = L"";
+    if (ret == ERROR_SUCCESS || ret == ERROR_MORE_DATA) {
+        std::vector<wchar_t> buffer(cbData / sizeof(wchar_t) + 2, L'\0');
+        if (RegQueryValueExW(hKey, L"Path", NULL, &type, (BYTE*)buffer.data(), &cbData) == ERROR_SUCCESS) {
+            pathVal = buffer.data();
+        }
+    }
+
+    std::wstring checkDir = dirToInstall;
+    if (!checkDir.empty() && checkDir.back() == L'\\') {
+        checkDir.pop_back();
+    }
+    
+    std::wstring pathValLower = pathVal;
+    std::transform(pathValLower.begin(), pathValLower.end(), pathValLower.begin(), ::towlower);
+    std::wstring checkDirLower = checkDir;
+    std::transform(checkDirLower.begin(), checkDirLower.end(), checkDirLower.begin(), ::towlower);
+
+    bool found = false;
+    size_t pos = 0;
+    while ((pos = pathValLower.find(checkDirLower, pos)) != std::wstring::npos) {
+        bool startMatch = (pos == 0 || pathValLower[pos - 1] == L';');
+        size_t endPos = pos + checkDirLower.size();
+        bool endMatch = (endPos == pathValLower.size() || pathValLower[endPos] == L';' || pathValLower[endPos] == L'\\');
+        if (startMatch && endMatch) {
+            found = true;
+            break;
+        }
+        pos += 1;
+    }
+
+    if (!found) {
+        if (!pathVal.empty() && pathVal.back() != L';') {
+            pathVal += L";";
+        }
+        pathVal += checkDir;
+        
+        RegSetValueExW(hKey, L"Path", 0, REG_EXPAND_SZ, (BYTE*)pathVal.c_str(), (DWORD)((pathVal.size() + 1) * sizeof(wchar_t)));
+        
+        DWORD_PTR dwResult;
+        SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, (LPARAM)L"Environment", SMTO_ABORTIFHUNG, 5000, &dwResult);
+    }
+
+    RegCloseKey(hKey);
+    return true;
+}
+
+bool RemoveFromPath(const std::wstring& dirToInstall) {
+    HKEY hKey;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Environment", 0, KEY_READ | KEY_WRITE, &hKey) != ERROR_SUCCESS) {
+        return false;
+    }
+
+    DWORD type = 0;
+    DWORD cbData = 0;
+    LONG ret = RegQueryValueExW(hKey, L"Path", NULL, &type, NULL, &cbData);
+    
+    std::wstring pathVal = L"";
+    if (ret == ERROR_SUCCESS || ret == ERROR_MORE_DATA) {
+        std::vector<wchar_t> buffer(cbData / sizeof(wchar_t) + 2, L'\0');
+        if (RegQueryValueExW(hKey, L"Path", NULL, &type, (BYTE*)buffer.data(), &cbData) == ERROR_SUCCESS) {
+            pathVal = buffer.data();
+        }
+    }
+
+    if (pathVal.empty()) {
+        RegCloseKey(hKey);
+        return true;
+    }
+
+    std::wstring checkDir = dirToInstall;
+    if (!checkDir.empty() && checkDir.back() == L'\\') {
+        checkDir.pop_back();
+    }
+
+    std::vector<std::wstring> paths;
+    size_t start = 0;
+    size_t end = pathVal.find(L';');
+    while (end != std::wstring::npos) {
+        paths.push_back(pathVal.substr(start, end - start));
+        start = end + 1;
+        end = pathVal.find(L';', start);
+    }
+    paths.push_back(pathVal.substr(start));
+
+    std::wstring checkDirLower = checkDir;
+    std::transform(checkDirLower.begin(), checkDirLower.end(), checkDirLower.begin(), ::towlower);
+    
+    std::wstring newPathVal = L"";
+    bool modified = false;
+    for (auto& p : paths) {
+        std::wstring pCheck = p;
+        if (!pCheck.empty() && pCheck.back() == L'\\') {
+            pCheck.pop_back();
+        }
+        std::wstring pCheckLower = pCheck;
+        std::transform(pCheckLower.begin(), pCheckLower.end(), pCheckLower.begin(), ::towlower);
+
+        if (pCheckLower == checkDirLower) {
+            modified = true;
+        } else {
+            if (!newPathVal.empty()) {
+                newPathVal += L";";
+            }
+            newPathVal += p;
+        }
+    }
+
+    if (modified) {
+        RegSetValueExW(hKey, L"Path", 0, REG_EXPAND_SZ, (BYTE*)newPathVal.c_str(), (DWORD)((newPathVal.size() + 1) * sizeof(wchar_t)));
+        
+        DWORD_PTR dwResult;
+        SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, (LPARAM)L"Environment", SMTO_ABORTIFHUNG, 5000, &dwResult);
+    }
+
+    RegCloseKey(hKey);
+    return true;
+}
+
+bool RegisterExtension(ProgressCallback callback) {
+    if (callback) callback(5, L"Locating files...");
 
     wchar_t modulePath[MAX_PATH];
     GetModuleFileNameW(NULL, modulePath, MAX_PATH);
     PathRemoveFileSpecW(modulePath);
     std::wstring basePath = modulePath;
 
-    if (callback) callback->update(10, L"Unblocking files...");
+    if (callback) callback(10, L"Unblocking files...");
     UnblockDirectory(basePath);
 
     std::wstring dllPath  = basePath + L"\\QuickConvert.dll";
     std::wstring manifestPath = basePath + L"\\AppxManifest.xml";
     std::wstring iconPath = basePath + L"\\logo.ico";
 
-    if (callback) callback->update(20, L"Registering COM Server (HKLM)...");
+    if (callback) callback(20, L"Registering COM Server (HKLM)...");
     // Try regsvr32 first (needs admin) then fall back to manual registry write
     std::wstring regCmd = L"regsvr32 /s \"" + dllPath + L"\"";
     bool regsvr32Ok = RunCommand(regCmd);
 
-    if (callback) callback->update(35, L"Writing CLSID to Registry...");
+    if (callback) callback(35, L"Writing CLSID to Registry...");
     // Always write manually – guarantees the entry exists even if regsvr32 was blocked
     RegisterCLSID(HKEY_LOCAL_MACHINE, dllPath);
     RegisterCLSID(HKEY_CURRENT_USER,  dllPath);
 
-    if (callback) callback->update(50, L"Applying Registry Associations...");
+    if (callback) callback(50, L"Applying Registry Associations...");
     
-    std::vector<std::wstring> extensions = { L".pdf", L".mp4", L".mp3", L".pptx", L".ppt", L".docx", L".doc", L".xlsx", L".xls", L".png", L".jpg", L".jpeg", L".webp", L".bmp", L".ico" };
+    std::vector<std::wstring> extensions = { 
+        L".pdf", L".mp4", L".mov", L".mp3", L".pptx", L".ppt", L".docx", L".doc", L".xlsx", L".xls", L".png", L".jpg", L".jpeg", L".webp", L".bmp", L".ico",
+        L".heic", L".heif", L".tiff", L".tif", L".gif", L".mkv", L".avi", L".webm", L".wav", L".m4a", L".flac", L".aac"
+    };
     
     auto install = [&](HKEY hRoot) {
         for (const auto& ext : extensions) {
@@ -136,36 +268,39 @@ bool RegisterExtension(ProgressCallback* callback) {
     install(HKEY_CURRENT_USER);
 
     if (IsWindows11()) {
-        if (callback) callback->update(75, L"Enabling Windows 11 Primary Menu...");
+        if (callback) callback(75, L"Enabling Windows 11 Primary Menu...");
         std::wstring registerCmd = L"powershell.exe -NoProfile -NonInteractive -Command \"Add-AppxPackage -Path '" + manifestPath + L"' -Register -ExternalLocation '" + basePath + L"'\"";
         RunCommand(registerCmd);
     }
 
-    if (callback) callback->update(90, L"Refreshing Explorer...");
+    if (callback) callback(80, L"Adding to PATH Environment Variable...");
+    AddToPath(basePath);
+
+    if (callback) callback(90, L"Refreshing Explorer...");
     RestartExplorer();
 
-    if (callback) callback->update(100, L"Installation Complete!");
+    if (callback) callback(100, L"Installation Complete!");
     return true;
 }
 
-bool UnregisterExtension(ProgressCallback* callback) {
-    if (callback) callback->update(10, L"Closing Explorer...");
+bool UnregisterExtension(ProgressCallback callback) {
+    if (callback) callback(10, L"Closing Explorer...");
     RestartExplorer();
     Sleep(1000);
 
-    if (callback) callback->update(30, L"Removing Sparse Package...");
+    if (callback) callback(30, L"Removing Sparse Package...");
     // Use the exact command the user confirmed works
     RunCommand(L"powershell.exe -NoProfile -NonInteractive -Command \"Get-AppxPackage QuickConvertShellExtension | Remove-AppxPackage\"");
 
-    if (callback) callback->update(50, L"Unregistering DLL...");
     wchar_t modulePath[MAX_PATH];
     GetModuleFileNameW(NULL, modulePath, MAX_PATH);
     PathRemoveFileSpecW(modulePath);
-    std::wstring dllPath = std::wstring(modulePath) + L"\\QuickConvert.dll";
+    std::wstring basePath = modulePath;
+    std::wstring dllPath = basePath + L"\\QuickConvert.dll";
     std::wstring unregCmd = L"regsvr32 /u /s \"" + dllPath + L"\"";
     RunCommand(unregCmd);
 
-    if (callback) callback->update(70, L"Cleaning Registry...");
+    if (callback) callback(70, L"Cleaning Registry...");
     
     // Use reg.exe directly as it's often more reliable for deep deletes
     auto regDelete = [](const wchar_t* root, const wchar_t* subKey) {
@@ -173,7 +308,10 @@ bool UnregisterExtension(ProgressCallback* callback) {
         RunCommand(cmd);
     };
 
-    std::vector<std::wstring> extensions = { L".pdf", L".mp4", L".mp3", L".pptx", L".ppt", L".docx", L".doc", L".xlsx", L".xls", L".png", L".jpg", L".jpeg", L".webp", L".bmp", L".ico" };
+    std::vector<std::wstring> extensions = { 
+        L".pdf", L".mp4", L".mov", L".mp3", L".pptx", L".ppt", L".docx", L".doc", L".xlsx", L".xls", L".png", L".jpg", L".jpeg", L".webp", L".bmp", L".ico",
+        L".heic", L".heif", L".tiff", L".tif", L".gif", L".mkv", L".avi", L".webm", L".wav", L".m4a", L".flac", L".aac"
+    };
     
     const wchar_t* roots[] = { L"HKLM", L"HKCU" };
     for (const auto& root : roots) {
@@ -194,18 +332,21 @@ bool UnregisterExtension(ProgressCallback* callback) {
         regDelete(root, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\QC_PDF");
     }
 
-    if (callback) callback->update(90, L"Restarting Explorer...");
+    if (callback) callback(80, L"Removing from PATH Environment Variable...");
+    RemoveFromPath(basePath);
+
+    if (callback) callback(90, L"Restarting Explorer...");
     RestartExplorer();
 
-    if (callback) callback->update(100, L"Uninstallation Complete!");
+    if (callback) callback(100, L"Uninstallation Complete!");
     return true;
 }
 
-bool RepairExtension(ProgressCallback* callback) {
-    if (callback) callback->update(10, L"Cleaning old state...");
-    UnregisterExtension(nullptr);
-    if (callback) callback->update(50, L"Reinstalling...");
-    return RegisterExtension(callback);
+bool RepairExtension(ProgressCallback callback) {
+    if (callback) callback(10, L"Cleaning old state...");
+    UnregisterExtension(callback ? [callback](int p, const wchar_t* s) { callback((int)(p * 0.4), s); } : ProgressCallback(nullptr));
+    if (callback) callback(50, L"Reinstalling...");
+    return RegisterExtension(callback ? [callback](int p, const wchar_t* s) { callback((int)(50 + p * 0.5), s); } : ProgressCallback(nullptr));
 }
 
 }

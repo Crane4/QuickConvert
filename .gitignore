@@ -26,7 +26,7 @@ microsoft.system.package.metadata/
 # Build and distribution folders
 build/
 dist/
+release/
+QuickConvert_v*/
+temp_ffmpeg/
 scratch/
-QuickConvert_v1.0/
-QuickConvert_v1.1/
-QuickConvert_v1.2/

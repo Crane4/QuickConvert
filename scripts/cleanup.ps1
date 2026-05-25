@@ -16,7 +16,8 @@ Start-Sleep -Seconds 2
 
 # 2. Unregister DLL
 Write-Host "[*] Unregistering DLL..."
-$dllPath = Join-Path $PSScriptRoot "QuickConvert.dll"
+$projectRoot = Split-Path $PSScriptRoot -Parent
+$dllPath = Join-Path $projectRoot "dist\QuickConvert.dll"
 if (Test-Path $dllPath) {
     regsvr32.exe /u /s $dllPath
 }

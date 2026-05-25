@@ -2,17 +2,16 @@
 #include <windows.h>
 #include <string>
 #include <vector>
+#include <functional>
 
 namespace InstallerLogic {
 
-struct ProgressCallback {
-    void (*update)(int percent, const wchar_t* status);
-};
+using ProgressCallback = std::function<void(int, const wchar_t*)>;
 
 // Core operations
-bool RegisterExtension(ProgressCallback* callback = nullptr);
-bool UnregisterExtension(ProgressCallback* callback = nullptr);
-bool RepairExtension(ProgressCallback* callback = nullptr);
+bool RegisterExtension(ProgressCallback callback = nullptr);
+bool UnregisterExtension(ProgressCallback callback = nullptr);
+bool RepairExtension(ProgressCallback callback = nullptr);
 
 // Helpers
 bool IsWindows11();
